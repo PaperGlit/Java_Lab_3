@@ -51,8 +51,9 @@ public class Item {
         return (this.quantity >= i);
     }
 
-    public void buyItem(int quantity) {
+    public Item buyItem(int quantity) {
         this.quantity -= quantity;
+        return new Item(this.name, this.type, quantity, this.price);
     }
 
     public String toString() {

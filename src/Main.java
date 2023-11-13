@@ -15,12 +15,12 @@ public class Main {
     public static void main(String[] args) {
         String s, t, u, n;
         int i, count;
-        Item it;
+        Item it, bi;
         double d, sum;
         boolean isMeatOrFish;
         ArrayList<Item> items = new ArrayList<>();
-        ArrayList<BoughtItem> cart = new ArrayList<>();
-        ArrayList<BoughtItem> history = new ArrayList<>();
+        ArrayList<Item> cart = new ArrayList<>();
+        ArrayList<Item> history = new ArrayList<>();
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter your name: ");
         String name = scanner.nextLine();
@@ -115,7 +115,7 @@ public class Main {
                     s = scanner.nextLine();
                     it = items.get(parseInt(s));
                     while (true) {
-                        System.out.print("How much " + it.getName() + "s do you want to buy?: ");
+                        System.out.print("How much " + it.getName() + "(s/es) do you want to buy?: ");
                         i = parseInt(scanner.nextLine());
                         if (i <= 0) {
                             System.out.println("Error: the quantity should be above zero");
@@ -124,15 +124,15 @@ public class Main {
                             System.out.println("Error: there is not enough quantity to buy that much");
                         } else break;
                     }
-                    it.buyItem(i);
-                    cart.add(new BoughtItem(it, i));
+                    bi = it.buyItem(i);
+                    cart.add(bi);
                     System.out.println("The item was bought successfully!");
                     break;
                 case "4":
                     sum = 0;
                     isMeatOrFish = false;
-                    for (BoughtItem item : cart) {
-                        if (item.getItem().getType().equals("Meat") || item.getItem().getType().equals("Fish")) {
+                    for (Item item : cart) {
+                        if (item.getType().equals("Meat") || item.getType().equals("Fish")) {
                             isMeatOrFish = true;
                         }
                         sum += item.getPrice();
@@ -146,7 +146,7 @@ public class Main {
                     break;
                 case "5":
                     System.out.println("Your history:");
-                    for (BoughtItem item : history) {
+                    for (Item item : history) {
                         System.out.println(item);
                     }
                     break;
