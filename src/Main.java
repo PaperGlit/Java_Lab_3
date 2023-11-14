@@ -130,6 +130,7 @@ public class Main {
                     }
                     bi = it.buy(i);
                     cart.add(bi);
+                    storeItems.removeIf(x->x.getQuantity() == 0);
                     System.out.println("The item was bought successfully!");
                     break;
                 case "4":
@@ -147,6 +148,7 @@ public class Main {
                     }
                     System.out.println("Total price:\t" + sum);
                     history.addAll(cart);
+                    FileService.writeReceipt(cart);
                     break;
                 case "5":
                     System.out.println("Your history:");
