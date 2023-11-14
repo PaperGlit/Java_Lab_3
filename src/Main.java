@@ -1,3 +1,6 @@
+import item.BoughtItem;
+import item.StoreItem;
+
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -15,12 +18,13 @@ public class Main {
     public static void main(String[] args) {
         String s, t, u, n;
         int i, count;
-        Item it, bi;
+        StoreItem it;
+        BoughtItem bi;
         double d, sum;
         boolean isMeatOrFish;
-        ArrayList<Item> items = new ArrayList<>();
-        ArrayList<Item> cart = new ArrayList<>();
-        ArrayList<Item> history = new ArrayList<>();
+        ArrayList<StoreItem> storeItems = new ArrayList<>();
+        ArrayList<BoughtItem> cart = new ArrayList<>();
+        ArrayList<BoughtItem> history = new ArrayList<>();
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter your name: ");
         String name = scanner.nextLine();
@@ -40,7 +44,7 @@ public class Main {
                     while (true) {
                         System.out.print("Enter the item's type (Vegetable, Fruit, Meat, Fish, Other): ");
                         t = scanner.nextLine();
-                        if (Item.isInvalidType(t)) {
+                        if (StoreItem.isInvalidType(t)) {
                             System.out.println("Error: incorrect type, please try again");
                         } else break;
                     }
@@ -48,18 +52,18 @@ public class Main {
                     i = parseInt(scanner.nextLine());
                     System.out.print("Enter the item's price: ");
                     d = parseDouble(scanner.nextLine());
-                    items.add(new Item(s, t, i, d));
+                    storeItems.add(new StoreItem(s, t, i, d));
                     System.out.println("New item was created successfully!");
                     break;
                 case "2":
                     count = 0;
-                    for (Item item : items) {
-                        System.out.println("#" + count + " " + item);
+                    for (StoreItem storeItem : storeItems) {
+                        System.out.println("#" + count + " " + storeItem);
                         count++;
                     }
                     System.out.print("Select an item to edit: ");
                     s = scanner.nextLine();
-                    it = items.get(parseInt(s));
+                    it = storeItems.get(parseInt(s));
                     System.out.println("Selected item: " + it);
                     System.out.print("""
                             Select what to edit:
@@ -81,7 +85,7 @@ public class Main {
                                 System.out.print("Enter the item's new type (Vegetable, Fruit, Meat, Fish, Other) " +
                                         "(Current type: " + it.getType() + "): ");
                                 u = scanner.nextLine();
-                                if (Item.isInvalidType(u)) {
+                                if (StoreItem.isInvalidType(u)) {
                                     System.out.println("Error: incorrect type, please try again");
                                 } else break;
                             }
@@ -107,13 +111,13 @@ public class Main {
                     break;
                 case "3":
                     count = 0;
-                    for (Item item : items) {
-                        System.out.println("#" + count + " " + item);
+                    for (StoreItem storeItem : storeItems) {
+                        System.out.println("#" + count + " " + storeItem);
                         count++;
                     }
                     System.out.print("Select which item to buy: ");
                     s = scanner.nextLine();
-                    it = items.get(parseInt(s));
+                    it = storeItems.get(parseInt(s));
                     while (true) {
                         System.out.print("How much " + it.getName() + "(s/es) do you want to buy?: ");
                         i = parseInt(scanner.nextLine());
@@ -124,14 +128,14 @@ public class Main {
                             System.out.println("Error: there is not enough quantity to buy that much");
                         } else break;
                     }
-                    bi = it.buyItem(i);
+                    bi = it.buy(i);
                     cart.add(bi);
                     System.out.println("The item was bought successfully!");
                     break;
                 case "4":
                     sum = 0;
                     isMeatOrFish = false;
-                    for (Item item : cart) {
+                    for (BoughtItem item : cart) {
                         if (item.getType().equals("Meat") || item.getType().equals("Fish")) {
                             isMeatOrFish = true;
                         }
@@ -146,7 +150,7 @@ public class Main {
                     break;
                 case "5":
                     System.out.println("Your history:");
-                    for (Item item : history) {
+                    for (BoughtItem item : history) {
                         System.out.println(item);
                     }
                     break;
