@@ -8,9 +8,11 @@ import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
 /* TODO :
-    * Implement a/an s/es methods
-    * File input/output
+    * Implement a/an s/es methods (optional)
+    * File input/output (partially done)
     * User system
+    * Sorting
+    * Dates
     * and more...
  */
 
@@ -20,8 +22,7 @@ public class Main {
         int i, count;
         StoreItem it;
         BoughtItem bi;
-        double d, sum;
-        boolean isMeatOrFish;
+        double d;
         ArrayList<StoreItem> storeItems = new ArrayList<>();
         ArrayList<BoughtItem> cart = new ArrayList<>();
         ArrayList<BoughtItem> history = new ArrayList<>();
@@ -134,19 +135,11 @@ public class Main {
                     System.out.println("The item was bought successfully!");
                     break;
                 case "4":
-                    sum = 0;
-                    isMeatOrFish = false;
-                    for (BoughtItem item : cart) {
-                        if (item.getType().equals("Meat") || item.getType().equals("Fish")) {
-                            isMeatOrFish = true;
-                        }
-                        sum += item.getPrice();
-                        System.out.println(item);
+                    System.out.println(BoughtItem.print(cart));
+                    System.out.println("Total:\t" + BoughtItem.total(cart));
+                    if (BoughtItem.hasMeatOrFish(cart)) {
+                        System.out.println(("Do not forget to put your " + BoughtItem.meatAndFish(cart) + " in the refrigerator!\n" ));
                     }
-                    if (isMeatOrFish) {
-                        System.out.println("Do not for get to put your meat/fish into the refrigerator!");
-                    }
-                    System.out.println("Total price:\t" + sum);
                     history.addAll(cart);
                     FileService.writeReceipt(cart);
                     break;
