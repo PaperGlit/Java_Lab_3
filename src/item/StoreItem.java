@@ -15,10 +15,6 @@ public class StoreItem extends Item {
         setT(type);
     }
 
-    public void setQuantity(int quantity) {
-        setQ(quantity);
-    }
-
     public void setPrice(double price) {
         setP(price);
     }

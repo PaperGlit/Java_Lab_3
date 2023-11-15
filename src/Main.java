@@ -3,6 +3,7 @@ import item.StoreItem;
 
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.stream.IntStream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
@@ -19,9 +20,8 @@ import static java.lang.Integer.parseInt;
 public class Main {
     public static void main(String[] args) {
         String s, t, u, n;
-        int i, count;
+        int i;
         StoreItem it;
-        BoughtItem bi;
         double d;
         ArrayList<StoreItem> storeItems = new ArrayList<>();
         ArrayList<BoughtItem> cart = new ArrayList<>();
@@ -57,11 +57,7 @@ public class Main {
                     System.out.println("New item was created successfully!");
                     break;
                 case "2":
-                    count = 0;
-                    for (StoreItem storeItem : storeItems) {
-                        System.out.println("#" + count + " " + storeItem);
-                        count++;
-                    }
+                    IntStream.range(0, storeItems.size()).mapToObj(count -> "#" + count + " " + storeItems.get(count)).forEach(System.out::println);
                     System.out.print("Select an item to edit: ");
                     s = scanner.nextLine();
                     it = storeItems.get(parseInt(s));
@@ -111,11 +107,7 @@ public class Main {
                     }
                     break;
                 case "3":
-                    count = 0;
-                    for (StoreItem storeItem : storeItems) {
-                        System.out.println("#" + count + " " + storeItem);
-                        count++;
-                    }
+                    IntStream.range(0, storeItems.size()).mapToObj(count -> "#" + count + " " + storeItems.get(count)).forEach(System.out::println);
                     System.out.print("Select which item to buy: ");
                     s = scanner.nextLine();
                     it = storeItems.get(parseInt(s));
@@ -129,8 +121,11 @@ public class Main {
                             System.out.println("Error: there is not enough quantity to buy that much");
                         } else break;
                     }
-                    bi = it.buy(i);
-                    cart.add(bi);
+                    BoughtItem bi = it.buy(i);
+                    if (cart.stream().anyMatch(x->x.equals(bi))) {
+                        cart.stream().filter(x -> x.equals(bi)).forEach(x -> x.setQuantity(x.getQuantity() + bi.getQuantity()));
+                    }
+                    else cart.add(bi);
                     storeItems.removeIf(x->x.getQuantity() == 0);
                     System.out.println("The item was bought successfully!");
                     break;
@@ -145,9 +140,7 @@ public class Main {
                     break;
                 case "5":
                     System.out.println("Your history:");
-                    for (BoughtItem item : history) {
-                        System.out.println(item);
-                    }
+                    BoughtItem.print(history);
                     break;
                 default:
                     return;

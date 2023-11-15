@@ -1,8 +1,6 @@
 import item.BoughtItem;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -45,5 +43,24 @@ public abstract class FileService {
                 System.out.println("An unknown error occurred");
             }
         }
+    }
+
+    public static <T> void exportToFile(ArrayList<T> items, String fileName) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
+            oos.writeObject(items);
+        } catch (IOException e) {
+            System.out.println("An unknown error occurred");
+        }
+    }
+
+    public static <T> ArrayList<T> importFromFile(String fileName) {
+        ArrayList<T> items = new ArrayList<>();
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
+            items = (ArrayList<T>) ois.readObject();
+            System.out.println("ArrayList imported from " + fileName);
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("An unknown error occurred");
+        }
+        return items;
     }
 }

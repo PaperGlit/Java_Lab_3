@@ -1,6 +1,7 @@
 package item;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class BoughtItem extends Item {
     public BoughtItem(String name, String type, int quantity, double price) {
@@ -25,9 +26,13 @@ public class BoughtItem extends Item {
         return mAF.substring(0, mAF.length() - 2);
     }
 
-    public static String print(ArrayList<BoughtItem> items) {
+    public static <T> String print(ArrayList<T> items) {
         StringBuilder sb = new StringBuilder();
         items.forEach(item -> sb.append(item.toString()).append("\n"));
         return sb.toString();
+    }
+
+    public boolean equals(BoughtItem item) {
+        return (Objects.equals(getName(), item.getName()) && Objects.equals(getType(), item.getType()) && getPrice() == item.getPrice());
     }
 }
