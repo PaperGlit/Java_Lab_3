@@ -1,8 +1,9 @@
 package item;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class StoreItem extends Item {
+public class StoreItem extends Item implements Serializable {
     public StoreItem(String name, String type, int quantity, double price) {
         super(name, type, quantity, price);
     }

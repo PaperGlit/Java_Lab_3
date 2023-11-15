@@ -36,7 +36,7 @@ public abstract class FileService {
                 fw.write(print(items));
                 fw.write(String.format("\nTotal:\t%.2f", total(items)));
                 if (BoughtItem.hasMeatOrFish(items)) {
-                    fw.write(String.format("Do not forget to put your %s in the refrigerator!\n", meatAndFish(items)));
+                    fw.write(String.format("\nDo not forget to put your %s in the refrigerator!\n", meatAndFish(items)));
                 }
             }
             catch (IOException e) {
@@ -57,7 +57,6 @@ public abstract class FileService {
         ArrayList<T> items = new ArrayList<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
             items = (ArrayList<T>) ois.readObject();
-            System.out.println("ArrayList imported from " + fileName);
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("An unknown error occurred");
         }

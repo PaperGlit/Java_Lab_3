@@ -1,9 +1,10 @@
 package item;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class BoughtItem extends Item {
+public class BoughtItem extends Item implements Serializable {
     public BoughtItem(String name, String type, int quantity, double price) {
         super(name, type, quantity, price);
     }
