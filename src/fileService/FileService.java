@@ -1,3 +1,5 @@
+package fileService;
+
 import item.BoughtItem;
 
 import java.io.*;
@@ -56,6 +58,7 @@ public abstract class FileService {
     public static <T> ArrayList<T> importFromFile(String fileName) {
         ArrayList<T> items = new ArrayList<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
+            //noinspection unchecked
             items = (ArrayList<T>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("An unknown error occurred");

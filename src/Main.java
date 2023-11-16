@@ -1,20 +1,25 @@
+import fileService.FileService;
 import item.BoughtItem;
+import item.Item;
 import item.StoreItem;
+import user.User;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
 /* TODO :
-    * Implement a/an s/es methods (optional)
+    * Implement a/an s/es methods (done!)
     * File input/output (done!)
-    * User system (done!)
+    * user.User system (done!)
     * Sorting
     * Dates
-    * Orders
+    * Orders (done!)
     * and more...
  */
 
@@ -25,14 +30,13 @@ public class Main {
         StoreItem it;
         double d;
         User user;
-        ArrayList<StoreItem> storeItems;
-        storeItems = FileService.importFromFile("shelf.ser");
+        ArrayList<StoreItem> shelf;
+        shelf = FileService.importFromFile("shelf.ser");
         ArrayList<BoughtItem> cart = new ArrayList<>();
         ArrayList<User> users;
         users = FileService.importFromFile("users.ser");
         Scanner scanner = new Scanner(System.in);
         if (!users.isEmpty()) {
-
                 System.out.print("""
                         User menu:
                         1 - Add a new user
@@ -45,6 +49,7 @@ public class Main {
                         System.out.print("Enter your name: ");
                         user = new User(scanner.nextLine());
                         users.add(user);
+                        FileService.exportToFile(users, "users.ser");
                         return;
                     case "2":
                         while (true) {
@@ -79,6 +84,7 @@ public class Main {
                                 continue;
                             }
                             users.remove(uIndex);
+                            FileService.exportToFile(users, "users.ser");
                             return;
                         }
                     default:
@@ -115,14 +121,14 @@ public class Main {
                         i = parseInt(scanner.nextLine());
                         System.out.print("Enter the item's price: ");
                         d = parseDouble(scanner.nextLine());
-                        storeItems.add(new StoreItem(s, t, i, d));
+                        shelf.add(new StoreItem(s, t, i, d));
                         System.out.println("New item was created successfully!");
                         break;
                     case "2":
-                        IntStream.range(0, storeItems.size()).mapToObj(count -> "#" + count + " " + storeItems.get(count)).forEach(System.out::println);
+                        IntStream.range(0, shelf.size()).mapToObj(count -> "#" + count + " " + shelf.get(count)).forEach(System.out::println);
                         System.out.print("Select an item to edit: ");
                         s = scanner.nextLine();
-                        it = storeItems.get(parseInt(s));
+                        it = shelf.get(parseInt(s));
                         System.out.println("Selected item: " + it);
                         System.out.print("""
                             Select what to edit:
@@ -169,7 +175,7 @@ public class Main {
                         }
                         break;
                     case "3":
-                        FileService.exportToFile(storeItems, "shelf.ser");
+                        FileService.exportToFile(shelf, "shelf.ser");
                         System.out.println("The items were exported successfully");
                         break;
                     default:
@@ -178,17 +184,24 @@ public class Main {
             }
 
             else {
+                if (user.getOrders().stream().anyMatch(order -> shelf.stream().anyMatch(item -> item.equals(order)))) {
+                    List<BoughtItem> tempList = user.getOrders().stream().filter(order -> shelf.stream().anyMatch(item -> item.equals(order))).toList();
+                    ArrayList<BoughtItem> postOrders = new ArrayList<>(tempList);
+                    ArrayList<BoughtItem> tempCart = postOrders.stream().map(postOrder -> postOrder.order(user, users, new ArrayList<>(), shelf)).flatMap(List::stream).collect(Collectors.toCollection(ArrayList::new));
+                    cart.addAll(tempCart);
+                }
                 System.out.printf("""
                         What do you want to do, %s?:
                         1 - Buy an item
-                        2 - Print your receipt and save it as a file
-                        3 - Print the history of your purchases
+                        2 - Place an order to buy an item
+                        3 - Print your receipt and save it as a file
+                        4 - Print the history of your purchases
                         Your choice:\s""", user.getName());
                 n = scanner.nextLine();
                 switch (n) {
                     case "1":
                         while (true) {
-                            IntStream.range(0, storeItems.size()).mapToObj(count -> "#" + count + " " + storeItems.get(count)).forEach(System.out::println);
+                            IntStream.range(0, shelf.size()).mapToObj(count -> "#" + count + " " + shelf.get(count)).forEach(System.out::println);
                             System.out.print("Select which item to buy: ");
                             s = scanner.nextLine();
                             try {
@@ -198,15 +211,15 @@ public class Main {
                                 System.out.println("Error: the input should be an integer");
                                 continue;
                             }
-                            if (i < 0 || i > storeItems.size() - 1) {
+                            if (i < 0 || i > shelf.size() - 1) {
                                 System.out.println("Error: unreachable value detected");
                                 continue;
                             }
-                            it = storeItems.get(i);
+                            it = shelf.get(i);
                             break;
                         }
                         while (true) {
-                            System.out.print("How much " + it.getName() + "(s/es) do you want to buy?: ");
+                            System.out.print("How many " + it.pluralize() + "do you want to buy?: ");
                             i = parseInt(scanner.nextLine());
                             if (i <= 0) {
                                 System.out.println("Error: the quantity should be above zero");
@@ -218,10 +231,60 @@ public class Main {
                         if (cart.stream().anyMatch(x -> x.equals(bi))) {
                             cart.stream().filter(x -> x.equals(bi)).forEach(x -> x.setQuantity(x.getQuantity() + bi.getQuantity()));
                         } else cart.add(bi);
-                        storeItems.removeIf(x -> x.getQuantity() == 0);
+                        shelf.removeIf(x -> x.getQuantity() == 0);
                         System.out.println("The item was bought successfully!");
                         break;
                     case "2":
+                        System.out.print("Enter the name of the item: ");
+                        s = scanner.nextLine();
+                        while (true) {
+                            System.out.print("Enter the item's type (Vegetable, Fruit, Meat, Fish, Other): ");
+                            t = scanner.nextLine();
+                            if (StoreItem.isInvalidType(t)) {
+                                System.out.println("Error: incorrect type, please try again");
+                            } else break;
+                        }
+                        while (true) {
+                            System.out.print("How many " + Item.pluralizer(s) + " do you want to buy?: ");
+                            try {
+                                i = parseInt(scanner.nextLine());
+                            }
+                            catch (Exception e) {
+                                System.out.println("Error: the input value should be an integer");
+                                continue;
+                            }
+                            if (i <= 0) {
+                                System.out.println("Error: the quantity should be above zero");
+                            }
+                            else break;
+                        }
+                        while (true) {
+                            System.out.print("At which price do you want to buy this item (per object): ");
+                            try {
+                                d = parseDouble(scanner.nextLine());
+                            }
+                            catch (Exception e) {
+                                System.out.println("Error: the input value should be a real number");
+                                continue;
+                            }
+                            if (d <= 0) {
+                                System.out.println("Error: the quantity should be above zero");
+                            }
+                            else break;
+                        }
+                        BoughtItem order = new BoughtItem(s, t, i, d);
+                        if (shelf.stream().anyMatch(x->x.equals(order))) {
+                            cart = order.order(user, users, cart, shelf);
+                        }
+                        else {
+                            ArrayList<BoughtItem> orders = user.getOrders();
+                            orders.add(order);
+                            user.setOrders(orders);
+                            FileService.exportToFile(users, "users.ser");
+                            System.out.println("Your order of " + order.getQuantity() + " " + order.pluralize() + " was set successfully");
+                        }
+                        break;
+                    case "3":
                         System.out.println(BoughtItem.print(cart));
                         System.out.println("Total:\t" + BoughtItem.total(cart));
                         if (BoughtItem.hasMeatOrFish(cart)) {
@@ -233,7 +296,7 @@ public class Main {
                         FileService.writeReceipt(cart);
                         FileService.exportToFile(users, "users.ser");
                         break;
-                    case "3":
+                    case "4":
                         System.out.println("Your history:");
                         System.out.print(BoughtItem.print(user.getHistory()));
                         break;

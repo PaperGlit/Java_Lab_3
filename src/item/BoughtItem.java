@@ -1,8 +1,10 @@
 package item;
 
+import fileService.FileService;
+import user.User;
+
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class BoughtItem extends Item implements Serializable {
     public BoughtItem(String name, String type, int quantity, double price) {
@@ -33,7 +35,25 @@ public class BoughtItem extends Item implements Serializable {
         return sb.toString();
     }
 
-    public boolean equals(BoughtItem item) {
-        return (Objects.equals(getName(), item.getName()) && Objects.equals(getType(), item.getType()) && getPrice() == item.getPrice());
+    public ArrayList<BoughtItem> order(User user, ArrayList<User> users, ArrayList<BoughtItem> cart, ArrayList<StoreItem> shelf) {
+        StoreItem oi = shelf.stream().filter(x->x.equals(this)).toList().get(0);
+        if (oi.getQuantity() < this.getQuantity()) {
+            this.setQuantity(oi.getQuantity());
+            BoughtItem suborder = new BoughtItem(this.getName(), this.getType(), this.getQuantity() - oi.getQuantity(), this.getPrice());
+            cart.add(this);
+            oi.setQuantity(0);
+            shelf.removeIf(x->x.getQuantity() == 0);
+            ArrayList<BoughtItem> orders = user.getOrders();
+            orders.add(suborder);
+            user.setOrders(orders);
+            FileService.exportToFile(users, "users.ser");
+            System.out.println("Your order of (" + this.getQuantity() + " / " + (this.getQuantity() + suborder.getQuantity()) + ") " + this.pluralize() + " was automatically added to your cart");
+        }
+        else {
+            oi.setQuantity(oi.getQuantity() - this.getQuantity());
+            cart.add(this);
+            System.out.println("Your order of " + this.getQuantity() + " " + this.pluralize() + " was successfully fulfilled and automatically added to your cart");
+        }
+        return cart;
     }
 }
