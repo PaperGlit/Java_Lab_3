@@ -40,7 +40,7 @@ public class StoreItem extends Item implements Serializable {
         String n;
         if (!shelf.isEmpty()){
             shelf.forEach(System.out::println);
-            System.out.print("1 - Sort by price, 2 - Filter by price: ");
+            System.out.print("1 - Sort by price, 2 - Filter by price, 3 - Average price: ");
             n = scanner.nextLine();
             switch (n) {
                 case "1":
@@ -93,6 +93,12 @@ public class StoreItem extends Item implements Serializable {
                     int max = j;
                     shelf.stream().filter(x->x.getPrice() >= min && x.getPrice() <= max).forEach(System.out::println);
                     break;
+                case "3":
+                    double avg = shelf.stream().mapToDouble(Item::getPrice).average().orElse(0.0);
+                    System.out.printf("Average price per item type: %.2f%n", avg);
+                    int qty = shelf.stream().mapToInt(Item::getQuantity).sum();
+                    double sum = shelf.stream().mapToDouble(x->x.getPrice() * x.getQuantity()).sum();
+                    System.out.printf("Average price per item: %.2f%n", sum / qty);
                 default:
                     break;
             }

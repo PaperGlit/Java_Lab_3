@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class User implements Serializable {
     final private String name;
-    private ArrayList<BoughtItem> history;
+    private ArrayList<History> history;
     private ArrayList<BoughtItem> orders;
 
     public User(String name) {
@@ -19,11 +19,11 @@ public class User implements Serializable {
         return name;
     }
 
-    public ArrayList<BoughtItem> getHistory() {
+    public ArrayList<History> getHistory() {
         return history;
     }
 
-    public void setHistory(ArrayList<BoughtItem> history) {
+    public void setHistory(ArrayList<History> history) {
         this.history = history;
     }
 

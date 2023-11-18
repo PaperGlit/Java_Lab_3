@@ -2,12 +2,10 @@ import fileService.FileService;
 import item.BoughtItem;
 import item.Item;
 import item.StoreItem;
+import user.History;
 import user.User;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -15,18 +13,22 @@ import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
 /* TODO :
-    * Implement a/an s/es methods (done!)
+    * Implement s/es method (done!)
     * File input/output (done!)
     * User system (done!)
     * Sorting and filtering (done!)
-    * Dates
+    * Dates (Done!)
     * Orders (done!)
-    * and more...
+    * Shelf avg price (done!)
+    * Most popular item
+    * Most profitable day
+    * Filtered by date user spending
+    * General user history
  */
 
 public class Main {
     public static void main(String[] args) {
-        String s, t, u, n;
+        String s, t, u, n, date;
         int i, uIndex;
         StoreItem it;
         double d;
@@ -97,6 +99,16 @@ public class Main {
             System.out.print("Enter your name: ");
             user = new User(scanner.nextLine());
             users.add(user);
+        }
+        do {
+            System.out.print("Enter the current date (dd.mm.yyyy): ");
+            date = scanner.nextLine();
+        } while (!History.dateCheck(date));
+        if (user.getOrders().stream().anyMatch(order -> shelf.stream().anyMatch(item -> item.equals(order)))) {
+            List<BoughtItem> tempList = user.getOrders().stream().filter(order -> shelf.stream().anyMatch(item -> item.equals(order))).toList();
+            ArrayList<BoughtItem> postOrders = new ArrayList<>(tempList);
+            ArrayList<BoughtItem> tempCart = postOrders.stream().map(postOrder -> postOrder.order(user, users, new ArrayList<>(), shelf)).flatMap(List::stream).collect(Collectors.toCollection(ArrayList::new));
+            cart.addAll(tempCart);
         }
         while (true) {
             if (user.getName().equals("Admin")) {
@@ -193,12 +205,6 @@ public class Main {
             }
 
             else {
-                if (user.getOrders().stream().anyMatch(order -> shelf.stream().anyMatch(item -> item.equals(order)))) {
-                    List<BoughtItem> tempList = user.getOrders().stream().filter(order -> shelf.stream().anyMatch(item -> item.equals(order))).toList();
-                    ArrayList<BoughtItem> postOrders = new ArrayList<>(tempList);
-                    ArrayList<BoughtItem> tempCart = postOrders.stream().map(postOrder -> postOrder.order(user, users, new ArrayList<>(), shelf)).flatMap(List::stream).collect(Collectors.toCollection(ArrayList::new));
-                    cart.addAll(tempCart);
-                }
                 System.out.printf("""
                         What do you want to do, %s?:
                         1 - Print the shop shelf
@@ -232,7 +238,7 @@ public class Main {
                             break;
                         }
                         while (true) {
-                            System.out.print("How many " + it.pluralize() + "do you want to buy?: ");
+                            System.out.print("How many " + it.pluralize() + " do you want to buy?: ");
                             i = parseInt(scanner.nextLine());
                             if (i <= 0) {
                                 System.out.println("Error: the quantity should be above zero");
@@ -250,7 +256,11 @@ public class Main {
                             }
                         }
                         shelf.removeIf(x -> x.getQuantity() == 0);
-                        System.out.println("The item was bought successfully!");
+                        String wasWere;
+                        if (i > 1) {
+                            wasWere = " were";
+                        } else wasWere = " was";
+                        System.out.println(i + " "  + bi.pluralize() + wasWere + " bought successfully!");
                         break;
                     case "3":
                         System.out.print("Enter the name of the item: ");
@@ -308,11 +318,14 @@ public class Main {
                         if (BoughtItem.hasMeatOrFish(cart)) {
                             System.out.println(("Do not forget to put your " + BoughtItem.meatAndFish(cart) + " in the refrigerator!\n"));
                         }
-                        ArrayList<BoughtItem> history = user.getHistory();
-                        history.addAll(cart);
+                        ArrayList<History> history = user.getHistory();
+                        History purchase = new History(cart, date);
+                        history.add(purchase);
                         user.setHistory(history);
                         FileService.writeReceipt(cart);
                         FileService.exportToFile(users, "users.ser");
+                        FileService.exportToFile(shelf, "shelf.ser");
+                        cart.clear();
                         break;
                     case "5":
                         System.out.println("Your history:");
