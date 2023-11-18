@@ -61,9 +61,6 @@ public abstract class Item implements Serializable {
         if (s.endsWith("s") || s.endsWith("sh") || s.endsWith("ch") || s.endsWith("x") || s.endsWith("z")) {
             return s + "es";
         }
-        else if (!(s.endsWith("ay") || s.endsWith("ey") || s.endsWith("iy") || s.endsWith("oy") || s.endsWith("uy"))) {
-            return s.substring(0, s.length() - 2) + "ies";
-        }
         else return s + "s";
     }
 

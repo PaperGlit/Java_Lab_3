@@ -6,6 +6,7 @@ import user.User;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -16,8 +17,8 @@ import static java.lang.Integer.parseInt;
 /* TODO :
     * Implement a/an s/es methods (done!)
     * File input/output (done!)
-    * user.User system (done!)
-    * Sorting
+    * User system (done!)
+    * Sorting and filtering (done!)
     * Dates
     * Orders (done!)
     * and more...
@@ -104,6 +105,7 @@ public class Main {
                         1 - Add an item
                         2 - Edit an item
                         3 - Export items
+                        4 - Print items
                         Your choice:\s""");
                 n = scanner.nextLine();
                 switch (n) {
@@ -121,8 +123,12 @@ public class Main {
                         i = parseInt(scanner.nextLine());
                         System.out.print("Enter the item's price: ");
                         d = parseDouble(scanner.nextLine());
-                        shelf.add(new StoreItem(s, t, i, d));
-                        System.out.println("New item was created successfully!");
+                        StoreItem si = new StoreItem(s, t, i, d);
+                        if(shelf.stream().anyMatch(x->x.equals(si))) {
+                            shelf.stream().filter(x -> x.equals(si)).forEach(x -> x.setQuantity(x.getQuantity() + si.getQuantity()));
+                        }
+                        else shelf.add(si);
+                        System.out.println("New item was added successfully!");
                         break;
                     case "2":
                         IntStream.range(0, shelf.size()).mapToObj(count -> "#" + count + " " + shelf.get(count)).forEach(System.out::println);
@@ -178,6 +184,9 @@ public class Main {
                         FileService.exportToFile(shelf, "shelf.ser");
                         System.out.println("The items were exported successfully");
                         break;
+                    case "4":
+                        StoreItem.print(shelf);
+                        break;
                     default:
                         return;
                 }
@@ -192,14 +201,18 @@ public class Main {
                 }
                 System.out.printf("""
                         What do you want to do, %s?:
-                        1 - Buy an item
-                        2 - Place an order to buy an item
-                        3 - Print your receipt and save it as a file
-                        4 - Print the history of your purchases
+                        1 - Print the shop shelf
+                        2 - Buy an item
+                        3 - Place an order to buy an item
+                        4 - Print your receipt and save it as a file
+                        5 - Print the history of your purchases
                         Your choice:\s""", user.getName());
                 n = scanner.nextLine();
                 switch (n) {
                     case "1":
+                        StoreItem.print(shelf);
+                        break;
+                    case "2":
                         while (true) {
                             IntStream.range(0, shelf.size()).mapToObj(count -> "#" + count + " " + shelf.get(count)).forEach(System.out::println);
                             System.out.print("Select which item to buy: ");
@@ -230,11 +243,16 @@ public class Main {
                         BoughtItem bi = it.buy(i);
                         if (cart.stream().anyMatch(x -> x.equals(bi))) {
                             cart.stream().filter(x -> x.equals(bi)).forEach(x -> x.setQuantity(x.getQuantity() + bi.getQuantity()));
-                        } else cart.add(bi);
+                        } else {
+                            cart.add(bi);
+                            if (Objects.equals(bi.getType(), "Fruit") || Objects.equals(bi.getType(), "Vegetable")) {
+                                cart.add(new BoughtItem("Shopping bag", "Other", 1, 5));
+                            }
+                        }
                         shelf.removeIf(x -> x.getQuantity() == 0);
                         System.out.println("The item was bought successfully!");
                         break;
-                    case "2":
+                    case "3":
                         System.out.print("Enter the name of the item: ");
                         s = scanner.nextLine();
                         while (true) {
@@ -284,7 +302,7 @@ public class Main {
                             System.out.println("Your order of " + order.getQuantity() + " " + order.pluralize() + " was set successfully");
                         }
                         break;
-                    case "3":
+                    case "4":
                         System.out.println(BoughtItem.print(cart));
                         System.out.println("Total:\t" + BoughtItem.total(cart));
                         if (BoughtItem.hasMeatOrFish(cart)) {
@@ -296,7 +314,7 @@ public class Main {
                         FileService.writeReceipt(cart);
                         FileService.exportToFile(users, "users.ser");
                         break;
-                    case "4":
+                    case "5":
                         System.out.println("Your history:");
                         System.out.print(BoughtItem.print(user.getHistory()));
                         break;

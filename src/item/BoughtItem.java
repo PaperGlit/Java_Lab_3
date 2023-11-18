@@ -38,8 +38,8 @@ public class BoughtItem extends Item implements Serializable {
     public ArrayList<BoughtItem> order(User user, ArrayList<User> users, ArrayList<BoughtItem> cart, ArrayList<StoreItem> shelf) {
         StoreItem oi = shelf.stream().filter(x->x.equals(this)).toList().get(0);
         if (oi.getQuantity() < this.getQuantity()) {
-            this.setQuantity(oi.getQuantity());
             BoughtItem suborder = new BoughtItem(this.getName(), this.getType(), this.getQuantity() - oi.getQuantity(), this.getPrice());
+            this.setQuantity(oi.getQuantity());
             cart.add(this);
             oi.setQuantity(0);
             shelf.removeIf(x->x.getQuantity() == 0);
@@ -51,6 +51,7 @@ public class BoughtItem extends Item implements Serializable {
         }
         else {
             oi.setQuantity(oi.getQuantity() - this.getQuantity());
+            shelf.removeIf(x->x.getQuantity() == 0);
             cart.add(this);
             System.out.println("Your order of " + this.getQuantity() + " " + this.pluralize() + " was successfully fulfilled and automatically added to your cart");
         }
