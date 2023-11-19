@@ -3,6 +3,9 @@ package fileService;
 import item.BoughtItem;
 
 import java.io.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -44,6 +47,8 @@ public abstract class FileService {
             catch (IOException e) {
                 System.out.println("An unknown error occurred");
             }
+            setFileReadOnly(fileName);
+            System.out.println("The items were bought successfully");
         }
     }
 
@@ -64,5 +69,14 @@ public abstract class FileService {
             System.out.println("An unknown error occurred");
         }
         return items;
+    }
+
+    private static void setFileReadOnly(String fileName) {
+        Path path = FileSystems.getDefault().getPath(fileName);
+        try {
+            Files.setAttribute(path, "dos:readonly", true);
+        } catch (IOException e) {
+            System.out.println("An error occurred while setting the file as read-only");
+        }
     }
 }

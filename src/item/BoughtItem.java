@@ -36,7 +36,7 @@ public class BoughtItem extends Item implements Serializable {
     }
 
     public ArrayList<BoughtItem> order(User user, ArrayList<User> users, ArrayList<BoughtItem> cart, ArrayList<StoreItem> shelf) {
-        StoreItem oi = shelf.stream().filter(x->x.equals(this)).toList().get(0);
+        StoreItem oi = shelf.stream().filter(x->x.oEquals(this)).toList().get(0);
         if (oi.getQuantity() < this.getQuantity()) {
             BoughtItem suborder = new BoughtItem(this.getName(), this.getType(), this.getQuantity() - oi.getQuantity(), this.getPrice());
             this.setQuantity(oi.getQuantity());
@@ -47,7 +47,7 @@ public class BoughtItem extends Item implements Serializable {
             orders.add(suborder);
             user.setOrders(orders);
             FileService.exportToFile(users, "users.ser");
-            System.out.println("Your order of (" + this.getQuantity() + " / " + (this.getQuantity() + suborder.getQuantity()) + ") " + this.pluralize() + " was automatically added to your cart");
+            System.out.println("Your order of (" + this.getQuantity() + "/" + (this.getQuantity() + suborder.getQuantity()) + ") " + this.pluralize() + " was automatically added to your cart");
         }
         else {
             oi.setQuantity(oi.getQuantity() - this.getQuantity());

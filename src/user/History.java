@@ -2,20 +2,30 @@ package user;
 
 import item.BoughtItem;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.Integer.parseInt;
 
-public class History {
-    private final ArrayList<BoughtItem> items;
-    String date;
-    int fDate;
+public class History implements Serializable {
+    private ArrayList<BoughtItem> items;
+    final private String date;
+    final private int fDate;
 
     public History(ArrayList<BoughtItem> items, String date) {
         this.items = items;
         this.date = date;
         this.fDate = dateToDays(date);
     }
+
+    public int getFDate() { return  fDate; }
+
+    public ArrayList<BoughtItem> getItems() { return  items; }
+
+    public void setItems(ArrayList<BoughtItem> items) { this.items = items; }
+
+    public void addItems(ArrayList<BoughtItem> items) { this.items.addAll(items); }
 
     public static boolean dateCheck(String date) {
         int d, m, y;
@@ -71,6 +81,17 @@ public class History {
             case 12 -> days + y + lm + 275;
             default -> throw new IllegalStateException("Unexpected value: " + months);
         };
+    }
+
+    public static ArrayList<History> generalizer(List<History> items) {
+        List<History> result = new ArrayList<>();
+        items.forEach(x-> {
+            if (result.stream().anyMatch(y-> x.getFDate() == y.getFDate())) {
+                result.stream().filter(y->y.getFDate() == x.getFDate()).forEach(z->z.addItems(x.getItems()));
+            }
+            else result.add(x);
+        });
+        return new ArrayList<>(result);
     }
 
     public String toString() {

@@ -1,8 +1,11 @@
 import fileService.FileService;
 import item.BoughtItem;
+import item.BoughtItemSorter;
 import item.Item;
 import item.StoreItem;
 import user.History;
+import user.HistorySorter;
+import user.ProfitSorter;
 import user.User;
 
 import java.util.*;
@@ -11,25 +14,12 @@ import java.util.stream.IntStream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
-
-/* TODO :
-    * Implement s/es method (done!)
-    * File input/output (done!)
-    * User system (done!)
-    * Sorting and filtering (done!)
-    * Dates (Done!)
-    * Orders (done!)
-    * Shelf avg price (done!)
-    * Most popular item
-    * Most profitable day
-    * Filtered by date user spending
-    * General user history
- */
+import static user.User.generalize;
 
 public class Main {
     public static void main(String[] args) {
         String s, t, u, n, date;
-        int i, uIndex;
+        int i, j, uIndex;
         StoreItem it;
         double d;
         User user;
@@ -53,7 +43,7 @@ public class Main {
                         user = new User(scanner.nextLine());
                         users.add(user);
                         FileService.exportToFile(users, "users.ser");
-                        return;
+                        break;
                     case "2":
                         while (true) {
                             IntStream.range(0, users.size()).mapToObj(count -> "#" + count + " " + users.get(count)).forEach(System.out::println);
@@ -104,8 +94,8 @@ public class Main {
             System.out.print("Enter the current date (dd.mm.yyyy): ");
             date = scanner.nextLine();
         } while (!History.dateCheck(date));
-        if (user.getOrders().stream().anyMatch(order -> shelf.stream().anyMatch(item -> item.equals(order)))) {
-            List<BoughtItem> tempList = user.getOrders().stream().filter(order -> shelf.stream().anyMatch(item -> item.equals(order))).toList();
+        if (user.getOrders().stream().anyMatch(order -> shelf.stream().anyMatch(item -> item.oEquals(order)))) {
+            List<BoughtItem> tempList = user.getOrders().stream().filter(order -> shelf.stream().anyMatch(item -> item.oEquals(order))).toList();
             ArrayList<BoughtItem> postOrders = new ArrayList<>(tempList);
             ArrayList<BoughtItem> tempCart = postOrders.stream().map(postOrder -> postOrder.order(user, users, new ArrayList<>(), shelf)).flatMap(List::stream).collect(Collectors.toCollection(ArrayList::new));
             cart.addAll(tempCart);
@@ -118,6 +108,7 @@ public class Main {
                         2 - Edit an item
                         3 - Export items
                         4 - Print items
+                        5 - Most profitable day
                         Your choice:\s""");
                 n = scanner.nextLine();
                 switch (n) {
@@ -199,6 +190,18 @@ public class Main {
                     case "4":
                         StoreItem.print(shelf);
                         break;
+                    case "5":
+                        ArrayList<History> combinedHistory = History.generalizer(users.stream().flatMap(x->x.getHistory().stream()).toList());
+                        if (!combinedHistory.isEmpty()) {
+                            combinedHistory.sort(new ProfitSorter().reversed());
+                            History mostProfitableDay = combinedHistory.get(0);
+                            ArrayList<BoughtItem> result = mostProfitableDay.getItems();
+                            result = generalize(result);
+                            mostProfitableDay.setItems(result);
+                            System.out.println("Most profitable day:\n" + mostProfitableDay);
+                        }
+                        else System.out.println("Most profitable day: none");
+                        break;
                     default:
                         return;
                 }
@@ -212,6 +215,7 @@ public class Main {
                         3 - Place an order to buy an item
                         4 - Print your receipt and save it as a file
                         5 - Print the history of your purchases
+                        6 - Most popular item
                         Your choice:\s""", user.getName());
                 n = scanner.nextLine();
                 switch (n) {
@@ -260,7 +264,7 @@ public class Main {
                         if (i > 1) {
                             wasWere = " were";
                         } else wasWere = " was";
-                        System.out.println(i + " "  + bi.pluralize() + wasWere + " bought successfully!");
+                        System.out.println(i + " "  + bi.pluralize() + wasWere + " successfully added to your cart!");
                         break;
                     case "3":
                         System.out.print("Enter the name of the item: ");
@@ -287,7 +291,7 @@ public class Main {
                             else break;
                         }
                         while (true) {
-                            System.out.print("At which price do you want to buy this item (per object): ");
+                            System.out.print("At which maximum price do you want to buy this item (per object): ");
                             try {
                                 d = parseDouble(scanner.nextLine());
                             }
@@ -301,7 +305,7 @@ public class Main {
                             else break;
                         }
                         BoughtItem order = new BoughtItem(s, t, i, d);
-                        if (shelf.stream().anyMatch(x->x.equals(order))) {
+                        if (shelf.stream().anyMatch(x->x.oEquals(order))) {
                             cart = order.order(user, users, cart, shelf);
                         }
                         else {
@@ -319,7 +323,8 @@ public class Main {
                             System.out.println(("Do not forget to put your " + BoughtItem.meatAndFish(cart) + " in the refrigerator!\n"));
                         }
                         ArrayList<History> history = user.getHistory();
-                        History purchase = new History(cart, date);
+                        ArrayList<BoughtItem> tempCart = new ArrayList<>(cart);
+                        History purchase = new History(tempCart, date);
                         history.add(purchase);
                         user.setHistory(history);
                         FileService.writeReceipt(cart);
@@ -329,7 +334,56 @@ public class Main {
                         break;
                     case "5":
                         System.out.println("Your history:");
-                        System.out.print(BoughtItem.print(user.getHistory()));
+                        ArrayList<History> uHistory = user.getHistory();
+                        uHistory.sort(new HistorySorter());
+                        System.out.print(BoughtItem.print(uHistory));
+                        System.out.print("1 - Filter by date, 2 - General history: ");
+                        n = scanner.nextLine();
+                        switch (n) {
+                            case "1":
+                                while (true) {
+                                    while (true) {
+                                        System.out.print("Enter the minimal date (dd.mm.yyyy): ");
+                                        s = scanner.nextLine();
+                                        if (History.dateCheck(s)) {
+                                            i = History.dateToDays(s);
+                                            break;
+                                        }
+                                    }
+                                    while (true) {
+                                        System.out.print("Enter the maximal date (dd.mm.yyyy): ");
+                                        t = scanner.nextLine();
+                                        if (History.dateCheck(t)) {
+                                            j = History.dateToDays(t);
+                                            break;
+                                        }
+                                    }
+                                    if (i <= j) break;
+                                    else System.out.println("Error: the minimal date can't be bigger than the maximal one");
+                                }
+                                int minDate = i;
+                                int maxDate = j;
+                                List<History> tempHistory = user.getHistory().stream().filter(x->x.getFDate() >= minDate && x.getFDate() <= maxDate).toList();
+                                System.out.println("History of purchases between " + s +" - " + t);
+                                System.out.print(BoughtItem.print(new ArrayList<>(tempHistory)));
+                                double[] total = {0.0};
+                                tempHistory.forEach(x -> total[0] += x.getItems().stream().mapToDouble(y->y.getPrice() * y.getQuantity()).sum());
+                                System.out.println("Total money spent during this time period: " + total[0]);
+                                break;
+                            case "2":
+                                System.out.println("General history:");
+                                ArrayList<BoughtItem> generalHistory = generalize(user.getHistory().stream().flatMap(x->x.getItems().stream()).toList());
+                                System.out.print(BoughtItem.print(generalHistory));
+                                System.out.println("Total money spent: " + generalHistory.stream().mapToDouble(x->x.getPrice() * x.getQuantity()).sum());
+                            default:
+                                break;
+                        }
+                        break;
+                    case "6":
+                        List<BoughtItem> temp = users.stream().flatMap(x->x.getHistory().stream()).flatMap(x->x.getItems().stream()).toList();
+                        ArrayList<BoughtItem> allHistory = generalize(temp);
+                        allHistory.sort(new BoughtItemSorter().reversed());
+                        System.out.println("Most popular item: " + allHistory.get(0).getName());
                         break;
                     default:
                         return;

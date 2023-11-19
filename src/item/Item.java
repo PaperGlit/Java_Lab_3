@@ -57,6 +57,10 @@ public abstract class Item implements Serializable {
         return (Objects.equals(getName(), item.getName()) && Objects.equals(getType(), item.getType()) && getPrice() == item.getPrice());
     }
 
+    public boolean oEquals(Item item) {
+        return (Objects.equals(getName(), item.getName()) && Objects.equals(getType(), item.getType()) && getPrice() <= item.getPrice());
+    }
+
     public static String pluralizer(String s) {
         if (s.endsWith("s") || s.endsWith("sh") || s.endsWith("ch") || s.endsWith("x") || s.endsWith("z")) {
             return s + "es";
